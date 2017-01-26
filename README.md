@@ -1,5 +1,5 @@
 # Hypersync
-Distriubuted p2p file syncing built on [Hyperdrive](https://github.com/mafintosh/hyperdrive)
+Distributed p2p file syncing built on [Hyperdrive](https://github.com/mafintosh/hyperdrive)
 
 ## Usage
 ```
