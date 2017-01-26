@@ -1,0 +1,22 @@
+{
+  "name": "hypersync",
+  "version": "1.0.0",
+  "description": "Distributed p2p file syncing built on hyperdrive",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "hsync": "./bin/hsync"
+  },
+  "author": "David Street",
+  "license": "MIT",
+  "dependencies": {
+    "commander": "^2.9.0",
+    "discovery-swarm": "^4.2.0",
+    "hyperdrive": "^7.13.1",
+    "hyperdrive-import-files": "^2.8.0",
+    "level": "^1.5.0",
+    "random-access-file": "^1.4.0"
+  }
+}
