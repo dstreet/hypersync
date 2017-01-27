@@ -1,6 +1,6 @@
 {
   "name": "hypersync",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Distributed p2p file syncing built on hyperdrive",
   "main": "index.js",
   "scripts": {
