@@ -12,6 +12,7 @@
   "author": "David Street",
   "license": "MIT",
   "dependencies": {
+    "chokidar": "^1.6.1",
     "commander": "^2.9.0",
     "discovery-swarm": "^4.2.0",
     "hyperdrive": "^7.13.1",

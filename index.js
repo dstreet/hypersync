@@ -1,9 +1,13 @@
 const fs = require('fs')
+const path = require('path')
 const Drive = require('./lib/drive')
 const Archive = require('./lib/archive')
 const Swarm = require('./lib/swarm')
 const Importer = require('./lib/importer')
 const prompt = require('./lib/prompt')
+const Journal = require('./lib/journal')
+
+const JOURNAL_FILENAME = '.hsyncj'
 
 module.exports = (dir, _opts) => {
 	const opts = Object.assign({}, {
@@ -21,6 +25,8 @@ module.exports = (dir, _opts) => {
 	const writeSwarm = Swarm(new Buffer(link, 'hex'))
 	const fileStatus = Importer(writeArchive, dir, opts)
 
+	let ignoreUnlink = false
+
 	console.log('Your key: ', link)
 
 	writeSwarm
@@ -33,7 +39,22 @@ module.exports = (dir, _opts) => {
 		.on('upload', () => console.log('Uploading data to peer...'))
 
 	fileStatus
-		.on('file watch event', data => console.log(data))
+		.on('file watch event', data => {
+			if ([...data.path.split('/')].pop() === JOURNAL_FILENAME || data.mode !== 'unlink') return
+
+			if (data.mode === 'unlink' && ignoreUnlink) {
+				ignoreUnlink = false
+				return
+			}
+			
+			const entry = [data.mode, data.path.replace(dir + '/', ''), (new Date()).toJSON()].join('\t')
+
+			console.log('Watch event:', entry)
+			fs.appendFile(path.join(dir, JOURNAL_FILENAME), entry + '\n', err => {
+				if (err) return console.log(err)
+				console.log('Event written to journal...')
+			})
+		})
 
 	prompt('Enter peer key: ')
 		.then(key => {
@@ -48,8 +69,33 @@ module.exports = (dir, _opts) => {
 					console.log('opened read connection to peer...')
 				})
 
+			const archiveList = readArchive.list()
+			
+			archiveList.on('data', entry => {
+				if (entry.name === JOURNAL_FILENAME) {
+					const rs = readArchive.createFileReadStream(entry)
+					
+					// Create a journal and delete a file if that is the last
+					// entry in the journal
+					Journal.createFromReadStream(rs)
+						.then(journal => {
+							if (journal.lastEntry.mode === 'unlink') {
+								const file = path.join(dir, journal.lastEntry.path)
+
+								if (!pathExists(file)) return
+
+								ignoreUnlink = true
+								fs.unlink(file, err => {
+									if (err) return console.log(err)
+									console.log('Deleted file:', file)
+								})
+							}
+						})
+				}
+			})
+
 			readArchive
-				.on('download', () => console.log('Downloading data from peer...'))
+				.on('download', data => console.log('Downloading data from peer...'))
 		})
 		.catch(err => console.log(err))
 }
